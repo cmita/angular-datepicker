@@ -840,6 +840,57 @@ Module.directive('dateTime', ['$compile', '$document', '$filter', 'dateTimeConfi
         }
       }
 
+      function showPicker() {
+        if (picker) {
+          return;
+        }
+        // create picker element
+        picker = $compile(template)(scope);
+        scope.$evalAsync();
+
+        //If the picker has already been shown before then we shouldn't be binding to events, as these events are already bound to in this scope.
+        if (!shownOnce) {
+          scope.$on('setDate', function (event, date, view) {
+            updateInput(event);
+            if (dateChange) {
+              dateChange(attrs.ngModel, date);
+            }
+            if (dismiss && views[views.length - 1] === view) {
+              clear();
+            }
+          });
+
+          scope.$on('hidePicker', function () {
+            element[0].blur();
+          });
+
+          scope.$on('$destroy', clear);
+
+          shownOnce = true;
+        }
+
+        // move picker below input element
+
+        if (position === 'absolute') {
+          var pos = element[0].getBoundingClientRect();
+          // Support IE8
+          var height = pos.height || element[0].offsetHeight;
+          picker.css({top: (pos.top + height) + 'px', left: pos.left + 'px', display: 'block', position: position});
+          body.append(picker);
+        } else {
+          // relative
+          container = angular.element('<div date-picker-wrapper></div>');
+          element[0].parentElement.insertBefore(container[0], element[0]);
+          container.append(picker);
+          //          this approach doesn't work
+          //          element.before(picker);
+          picker.css({top: element[0].offsetHeight + 'px', display: 'block'});
+        }
+        picker.bind('mousedown', function (evt) {
+          evt.preventDefault();
+        });
+      }
+
       if (pickerID) {
         scope.$on('pickerUpdate', function (event, pickerIDs, data) {
           if (eventIsForPicker(pickerIDs, pickerID)) {
@@ -877,36 +928,6 @@ Module.directive('dateTime', ['$compile', '$document', '$filter', 'dateTimeConfi
             }
           }
         });
-      }
-
-      function showPicker() {
-        if (picker) {
-          return;
-        }
-        // create picker element
-        picker = $compile(template)(scope);
-        scope.$evalAsync();
-
-        //If the picker has already been shown before then we shouldn't be binding to events, as these events are already bound to in this scope.
-        if (!shownOnce) {
-          scope.$on('setDate', function (event, date, view) {
-            updateInput(event);
-            if (dateChange) {
-              dateChange(attrs.ngModel, date);
-            }
-            if (dismiss && views[views.length - 1] === view) {
-              clear();
-            }
-          });
-
-          scope.$on('hidePicker', function () {
-            element[0].blur();
-          });
-
-          scope.$on('$destroy', clear);
-
-          shownOnce = true;
-        }
 
         scope.$on('pickerToggle', function(event, pickerIDs) {
           if (eventIsForPicker(pickerIDs, pickerID)) {
@@ -923,27 +944,6 @@ Module.directive('dateTime', ['$compile', '$document', '$filter', 'dateTimeConfi
           if (eventIsForPicker(pickerIDs, pickerID)) {
             element.focus();
           }
-        });
-
-        // move picker below input element
-
-        if (position === 'absolute') {
-          var pos = element[0].getBoundingClientRect();
-          // Support IE8
-          var height = pos.height || element[0].offsetHeight;
-          picker.css({top: (pos.top + height) + 'px', left: pos.left + 'px', display: 'block', position: position});
-          body.append(picker);
-        } else {
-          // relative
-          container = angular.element('<div date-picker-wrapper></div>');
-          element[0].parentElement.insertBefore(container[0], element[0]);
-          container.append(picker);
-          //          this approach doesn't work
-          //          element.before(picker);
-          picker.css({top: element[0].offsetHeight + 'px', display: 'block'});
-        }
-        picker.bind('mousedown', function (evt) {
-          evt.preventDefault();
         });
       }
 
