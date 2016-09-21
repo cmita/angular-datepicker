@@ -15,6 +15,7 @@ Module.constant('dateTimeConfig', {
       (attrs.maxDate ? 'max-date="' + attrs.maxDate + '" ' : '') +
       (attrs.autoClose ? 'auto-close="' + attrs.autoClose + '" ' : '') +
       (attrs.template ? 'template="' + attrs.template + '" ' : '') +
+      (attrs.format ? 'format="' + attrs.format + '" ' : '') +
       (attrs.minView ? 'min-view="' + attrs.minView + '" ' : '') +
       (attrs.minDate ? 'min-date="' + attrs.minDate + '" ' : '') +
       (attrs.partial ? 'partial="' + attrs.partial + '" ' : '') +
@@ -201,7 +202,7 @@ Module.directive('dateTime', ['$compile', '$document', '$filter', 'dateTimeConfi
         }
         // create picker element
         picker = $compile(template)(scope);
-        scope.$digest();
+        scope.$evalAsync();
 
         //If the picker has already been shown before then we shouldn't be binding to events, as these events are already bound to in this scope.
         if (!shownOnce) {
@@ -224,6 +225,22 @@ Module.directive('dateTime', ['$compile', '$document', '$filter', 'dateTimeConfi
           shownOnce = true;
         }
 
+        scope.$on('pickerToggle', function(event, pickerIDs) {
+          if (eventIsForPicker(pickerIDs, pickerID)) {
+            if(picker) {
+              clear();
+            }
+            else {
+              showPicker();
+            }
+          }
+        });
+
+        scope.$on('pickerFocus', function(event, pickerIDs) {
+          if (eventIsForPicker(pickerIDs, pickerID)) {
+            element.focus();
+          }
+        });
 
         // move picker below input element
 

@@ -195,7 +195,7 @@ angular.module('datePicker').factory('datePickerUtils', function () {
         return true;
       });
     },
-    createMoment: function (m) {
+    createMoment: function (m, format) {
       if (tz) {
         return moment.tz(m, tz);
       } else {
@@ -204,13 +204,13 @@ angular.module('datePicker').factory('datePickerUtils', function () {
         //the timezone of the input moment. The easiest way to do that is to
         //take the unix timestamp, and use that to create a new moment.
         //The new moment will use the local timezone of the user machine.
-        return moment.isMoment(m) ? moment.unix(m.unix()) : moment(m);
+        return moment.isMoment(m) ? moment.unix(m.unix()) : moment(m, format);
       }
     },
     getDate: function (scope, attrs, name) {
       var result = false;
       if (attrs[name]) {
-        result = this.createMoment(attrs[name]);
+        result = this.createMoment(attrs[name], attrs.format);
         if (!result.isValid()) {
           result = this.findParam(scope, attrs[name]);
           if (result) {
